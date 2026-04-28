@@ -1,0 +1,46 @@
+Bootstrap: docker
+
+# Use any docker image as a base (see https://hub.docker.com/)
+# If using GPU, consider using a CUDA-enabled base image
+From: python:3.11-slim
+
+%labels
+    Author FOMO26 Challenge - Linear Probing Task
+    Version v1.0.0
+    Description FOMO26 Linear Probing Embeddings Apptainer Image
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export LC_ALL=C.UTF-8
+
+%files
+    ./predict.py /app/predict.py
+    ./requirements.txt /app/requirements.txt
+
+%post
+    mkdir -p /input /output /app
+
+    pip install --no-cache-dir -U pip
+    pip install --no-cache-dir -r /app/requirements.txt
+
+    chmod +x /app/predict.py
+
+%runscript
+    exec python /app/predict.py "$@"
+
+%help
+    This container runs the FOMO26 linear probing task.
+    It produces an (N, M) float embedding matrix saved as a .npy file.
+
+    Build this container with:
+
+        `apptainer build --fakeroot /path/to/save/linear_probing.sif /path/to/Apptainer.def`
+
+    Usage:
+
+        `apptainer run --bind /path/to/input:/input:ro \
+            --bind /path/to/output:/output \
+            --nv \
+            linear_probing.sif \
+            --input /input/image.nii.gz \
+            --output /output/embeddings.npy`

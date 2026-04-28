@@ -1,0 +1,48 @@
+Bootstrap: docker
+
+# Use any docker image as a base (see https://hub.docker.com/)
+# If using GPU, consider using a CUDA-enabled base image
+From: python:3.11-slim
+
+%labels
+    Author FOMO26 Challenge - Polymicrogyria Classification Task
+    Version v1.0.0
+    Description FOMO26 Polymicrogyria Binary Classification Apptainer Image
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export LC_ALL=C.UTF-8
+
+%files
+    ./predict.py /app/predict.py
+    ./requirements.txt /app/requirements.txt
+
+%post
+    mkdir -p /input /output /app
+
+    # Skip pip install if requirements.txt is empty (stdlib-only dummy)
+    pip install --no-cache-dir -U pip
+    if [ -s /app/requirements.txt ]; then \
+        pip install --no-cache-dir -r /app/requirements.txt; \
+    fi
+
+    chmod +x /app/predict.py
+
+%runscript
+    exec python /app/predict.py "$@"
+
+%help
+    This container runs the FOMO26 polymicrogyria classification task.
+
+    Build this container with:
+
+        `apptainer build --fakeroot /path/to/save/polymicrogyria.sif /path/to/Apptainer.def`
+
+    Usage:
+
+        `apptainer run --bind /path/to/input:/input:ro \
+            --bind /path/to/output:/output \
+            --nv \
+            polymicrogyria.sif \
+            --t1w /input/t1.nii.gz \
+            --output /output/probability.txt`

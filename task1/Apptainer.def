@@ -5,9 +5,9 @@ Bootstrap: docker
 From: python:3.11-slim
 
 %labels
-    Author FOMO25 Challenge - Segmentation Task
+    Author FOMO26 Challenge - Classification Task
     Version v1.0.0
-    Description FOMO25 Binary Segmentation Apptainer Image
+    Description FOMO26 Infarct Classification Apptainer Image
 
 %environment
     export PYTHONUNBUFFERED=1
@@ -22,13 +22,8 @@ From: python:3.11-slim
     # Create necessary directories
     mkdir -p /input /output /app
 
-    # Update and install system dependencies
-    apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-    # Install Python dependencies
-    pip install --no-cache-dir -U pip setuptools wheel
+    # Install Python dependencies (manylinux wheels available, no compiler needed)
+    pip install --no-cache-dir -U pip
     pip install --no-cache-dir -r /app/requirements.txt
 
     # Make predict.py executable
@@ -39,19 +34,21 @@ From: python:3.11-slim
     exec python /app/predict.py "$@"
 
 %help
-    This container runs the FOMO25 binary segmentation task.
+    This container runs the FOMO26 infarct classification task.
 
     Build this container with:
         
-        `apptainer build --fakeroot /path/to/save/segmentation.sif /path/to/Apptainer.def`
+        `apptainer build --fakeroot /path/to/save/classification.sif /path/to/Apptainer.def`
+
     
     Usage:
         
         `apptainer run --bind /path/to/input:/input:ro \
             --bind /path/to/output:/output \
             --nv \
-            segmentation.sif \
+            classification.sif \
             --flair /input/flair.nii.gz \
+            --adc /input/adc.nii.gz \
             --dwi_b1000 /input/dwi.nii.gz \
             --t2s /input/t2s.nii.gz \
-            --output /output/segmentation.nii.gz`
+            --output /output/sub_id.txt`

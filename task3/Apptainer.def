@@ -5,9 +5,9 @@ Bootstrap: docker
 From: python:3.11-slim
 
 %labels
-    Author FOMO25 Challenge - Brain Age Regression Task
+    Author FOMO26 Challenge - Brain Age Regression Task
     Version v1.0.0
-    Description FOMO25 Brain Age Prediction Apptainer Image
+    Description FOMO26 Brain Age Prediction Apptainer Image
 
 %environment
     export PYTHONUNBUFFERED=1
@@ -21,16 +21,13 @@ From: python:3.11-slim
 %post
     # Create necessary directories
     mkdir -p /input /output /app
-    
-    # Update and install system dependencies
-    apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-    
-    # Install Python dependencies
-    pip install --no-cache-dir -U pip setuptools wheel
-    pip install --no-cache-dir -r /app/requirements.txt
-    
+
+    # Install Python dependencies (skip pip install if requirements.txt is empty)
+    pip install --no-cache-dir -U pip
+    if [ -s /app/requirements.txt ]; then \
+        pip install --no-cache-dir -r /app/requirements.txt; \
+    fi
+
     # Make predict.py executable
     chmod +x /app/predict.py
 
@@ -39,18 +36,17 @@ From: python:3.11-slim
     exec python /app/predict.py "$@"
 
 %help
-    This container runs the FOMO25 brain age prediction task.
-    
+    This container runs the FOMO26 brain age prediction task.
+
     Build this container with:
-        
+
         `apptainer build --fakeroot /path/to/save/brain_age.sif /path/to/Apptainer.def`
-    
+
     Usage:
-        
+
         `apptainer run --bind /path/to/input:/input:ro \
             --bind /path/to/output:/output \
             --nv \
             brain_age.sif \
             --t1 /input/t1.nii.gz \
-            --t2 /input/t2.nii.gz \
             --output /output/age_prediction.txt`
