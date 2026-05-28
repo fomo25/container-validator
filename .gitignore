@@ -191,3 +191,4 @@ cython_debug/
 imgs/workflow-diagram.svg
 
 output
+build_containers.sh
